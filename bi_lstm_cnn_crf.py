@@ -34,7 +34,9 @@ def main():
     parser.add_argument('--regular', choices=['none', 'l2'], help='regularization for training', required=True)
     parser.add_argument('--dropout', action='store_true', help='Apply dropout layers')
     parser.add_argument('--patience', type=int, default=5, help='Patience for early stopping')
-    parser.add_argument('--output_prediction', action='store_true', help='Output predictions to temp files')
+    parser.add_argument('--output_prediction', choices=['all', 'last', 'none'],
+                        help='Output predictions to temp files', default='none')
+    parser.add_argument('--epochs', type=int, help='Number of epochs to train the classifier')
     parser.add_argument('--train')  # "data/POS-penn/wsj/split1/wsj1.train.original"
     parser.add_argument('--dev')  # "data/POS-penn/wsj/split1/wsj1.dev.original"
     parser.add_argument('--test')  # "data/POS-penn/wsj/split1/wsj1.test.original"
@@ -79,6 +81,9 @@ def main():
     gamma = args.gamma
     output_predict = args.output_prediction
     dropout = args.dropout
+
+    if output_predict != 'none':
+        utils.safe_mkdir('tmp')
 
     X_train, Y_train, mask_train, X_dev, Y_dev, mask_dev, X_test, Y_test, mask_test, \
     embedd_table, label_alphabet, \
@@ -165,7 +170,7 @@ def main():
             grad_clipping,
             peepholes))
     num_batches = num_data / batch_size
-    num_epochs = 1000
+    num_epochs = args.epochs
     best_loss = 1e+12
     best_acc = 0.0
     best_epoch_loss = 0
@@ -224,7 +229,7 @@ def main():
             dev_corr += corr
             dev_total += num
             dev_inst += inputs.shape[0]
-            if output_predict:
+            if output_predict == 'all':
                 utils.output_predictions(predictions, targets, masks, 'tmp/dev%d' % epoch, label_alphabet,
                                          is_flattened=False)
 
@@ -259,7 +264,7 @@ def main():
                 test_corr += corr
                 test_total += num
                 test_inst += inputs.shape[0]
-                if output_predict:
+                if output_predict == 'all':
                     utils.output_predictions(predictions, targets, masks, 'tmp/test%d' % epoch, label_alphabet,
                                              is_flattened=False)
 
@@ -284,6 +289,16 @@ def main():
             train_fn = theano.function([input_var, target_var, mask_var, char_input_var],
                                         [loss_train, corr_train, num_tokens],
                                         updates=updates)
+
+
+    if output_predict == 'last':
+        # Log last predictions
+        # Compile a third function evaluating the final predictions only
+        predict_fn = theano.function(
+            [input_var, mask_var], [final_prediction], allow_input_downcast=True)
+        predictions = predict_fn(X_test, mask_test)[0]
+        utils.output_predictions(predictions, Y_dev, mask_test,
+                                 'tmp/final_test', label_alphabet)
 
     # print best performance on test data.
     logger.info("final best loss test performance (at epoch %d)" % best_epoch_loss)

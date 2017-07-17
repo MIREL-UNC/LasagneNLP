@@ -1,6 +1,7 @@
 __author__ = 'max'
 
 import logging
+import os
 import sys
 import numpy as np
 import lasagne
@@ -164,3 +165,8 @@ def output_predictions(predictions, targets, masks, filename, label_alphabet, is
                                               label_alphabet.get_instance(prediction)))
             file.write('\n')
 
+
+def safe_mkdir(directory_name):
+    """Creates a directory only if it doesn't exists"""
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
