@@ -36,6 +36,8 @@ def main():
     parser.add_argument('--patience', type=int, default=5, help='Patience for early stopping')
     parser.add_argument('--output_prediction', choices=['all', 'last', 'none'],
                         help='Output predictions to temp files', default='none')
+    parser.add_argument('--gradient_steps', type=int,
+                        help='Number of steps to propagate the gradient during optimization')
     parser.add_argument('--epochs', type=int, help='Number of epochs to train the classifier')
     parser.add_argument('--train')  # "data/POS-penn/wsj/split1/wsj1.train.original"
     parser.add_argument('--dev')  # "data/POS-penn/wsj/split1/wsj1.dev.original"
@@ -123,7 +125,7 @@ def main():
 
     bi_lstm_cnn_crf = build_BiLSTM_CNN_CRF(layer_incoming1, layer_incoming2, num_units, num_labels, mask=layer_mask,
                                            grad_clipping=grad_clipping, peepholes=peepholes, num_filters=num_filters,
-                                           dropout=dropout)
+                                           dropout=dropout, gradient_steps=gradient_steps)
 
     logger.info("Network structure: hidden=%d, filter=%d" % (num_units, num_filters))
 
@@ -171,6 +173,7 @@ def main():
             peepholes))
     num_batches = num_data / batch_size
     num_epochs = args.epochs
+    gradient_steps = args.gradient_steps
     best_loss = 1e+12
     best_acc = 0.0
     best_epoch_loss = 0
