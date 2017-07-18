@@ -81,6 +81,7 @@ def main():
     peepholes = args.peepholes
     num_filters = args.num_filters
     gamma = args.gamma
+    gradient_steps = args.gradient_steps
     output_predict = args.output_prediction
     dropout = args.dropout
 
@@ -173,7 +174,6 @@ def main():
             peepholes))
     num_batches = num_data / batch_size
     num_epochs = args.epochs
-    gradient_steps = args.gradient_steps
     best_loss = 1e+12
     best_acc = 0.0
     best_epoch_loss = 0
