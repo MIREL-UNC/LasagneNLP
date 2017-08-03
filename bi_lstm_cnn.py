@@ -302,7 +302,6 @@ def main():
         predict_fn = theano.function(
             [input_var, target_var, mask_var, char_input_var],
             [final_prediction], allow_input_downcast=True)
-        predictions = predict_fn(X_test, mask_test)[0]
         for batch in utils.iterate_minibatches(
             X_test, Y_test, masks=mask_test, char_inputs=C_test,
             batch_size=batch_size):

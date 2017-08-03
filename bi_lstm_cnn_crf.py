@@ -293,15 +293,19 @@ def main():
                                         [loss_train, corr_train, num_tokens],
                                         updates=updates)
 
-
     if output_predict == 'last':
         # Log last predictions
         # Compile a third function evaluating the final predictions only
         predict_fn = theano.function(
-            [input_var, mask_var], [prediction_eval], allow_input_downcast=True)
-        predictions = predict_fn(X_test, mask_test)[0]
-        utils.output_predictions(predictions, Y_test, mask_test,
-                                 'tmp/final_test', label_alphabet)
+            [input_var, target_var, mask_var, char_input_var],
+            [final_prediction], allow_input_downcast=True)
+        for batch in utils.iterate_minibatches(
+            X_test, Y_test, masks=mask_test, char_inputs=C_test,
+            batch_size=batch_size):
+                inputs, targets, masks, char_inputs = batch
+                predictions = predict_fn(inputs, targets, masks, char_inputs)
+            utils.output_predictions(predictions, targets, mask,
+                                     'tmp/final_test', label_alphabet)
 
     # print best performance on test data.
     logger.info("final best loss test performance (at epoch %d)" % best_epoch_loss)
