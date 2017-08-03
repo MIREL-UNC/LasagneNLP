@@ -68,6 +68,7 @@ def main():
         return layer_char_input
 
     logger = utils.get_logger("BiLSTM-CNN-CRF")
+    gradient_steps = args.gradient_steps
     fine_tune = args.fine_tune
     oov = args.oov
     regular = args.regular
@@ -81,7 +82,6 @@ def main():
     peepholes = args.peepholes
     num_filters = args.num_filters
     gamma = args.gamma
-    gradient_steps = args.gradient_steps
     output_predict = args.output_prediction
     dropout = args.dropout
 
