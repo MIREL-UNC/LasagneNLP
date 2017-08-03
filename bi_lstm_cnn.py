@@ -37,7 +37,7 @@ def main():
     parser.add_argument('--epochs', type=int, help='Number of epochs to train the classifier')
     parser.add_argument('--gradient_steps', type=int,
                         help='Number of steps to propagate the gradient during optimization')
-    parser.add_argument('--output_directory', type=str, default='tmp_bi_lstm_cnn_crf',
+    parser.add_argument('--output_directory', type=str, default='tmp_bi_lstm_cnn',
                         help='Directory to store the predictions')
     parser.add_argument('--train')  # "data/POS-penn/wsj/split1/wsj1.train.original"
     parser.add_argument('--dev')  # "data/POS-penn/wsj/split1/wsj1.dev.original"
