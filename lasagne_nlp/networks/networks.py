@@ -43,7 +43,7 @@ def build_BiRNN(incoming, num_units, mask=None, grad_clipping=0, nonlinearity=no
 
 
 def build_BiLSTM(incoming, num_units, mask=None, grad_clipping=0, precompute_input=True, peepholes=False, dropout=True,
-                 in_to_out=False):
+                 in_to_out=False, gradient_steps=-1):
     # construct the forward and backward rnns. Now, Ws are initialized by Glorot initializer with default arguments.
     # Need to try other initializers for specific tasks.
 
@@ -78,6 +78,7 @@ def build_BiLSTM(incoming, num_units, mask=None, grad_clipping=0, precompute_inp
     cell_backward = Gate(W_in=lasagne.init.GlorotUniform(), W_hid=lasagne.init.GlorotUniform(), W_cell=None,
                          nonlinearity=nonlinearities.tanh)
     lstm_backward = lasagne.layers.LSTMLayer(incoming, num_units, mask_input=mask, grad_clipping=grad_clipping,
+                                             gradient_steps=gradient_steps,
                                              nonlinearity=nonlinearities.tanh, peepholes=peepholes,
                                              precompute_input=precompute_input, backwards=True,
                                              ingate=ingate_backward, outgate=outgate_backward,
@@ -173,7 +174,7 @@ def build_BiRNN_CNN(incoming1, incoming2, num_units, mask=None, grad_clipping=0,
 
 
 def build_BiLSTM_CNN(incoming1, incoming2, num_units, mask=None, grad_clipping=0, precompute_input=True,
-                     peepholes=False, num_filters=20, dropout=True, in_to_out=False):
+                     peepholes=False, num_filters=20, dropout=True, in_to_out=False, gradient_steps=-1):
     # first get some necessary dimensions or parameters
     conv_window = 3
     _, sent_length, _ = incoming2.output_shape
@@ -196,7 +197,8 @@ def build_BiLSTM_CNN(incoming1, incoming2, num_units, mask=None, grad_clipping=0
     incoming = lasagne.layers.concat([output_cnn_layer, incoming2], axis=2)
 
     return build_BiLSTM(incoming, num_units, mask=mask, grad_clipping=grad_clipping, peepholes=peepholes,
-                        precompute_input=precompute_input, dropout=dropout, in_to_out=in_to_out)
+                        precompute_input=precompute_input, dropout=dropout, in_to_out=in_to_out,
+                        gradient_steps=gradient_steps)
 
 
 def build_BiGRU_CNN(incoming1, incoming2, num_units, mask=None, grad_clipping=0, precompute_input=True,
@@ -227,16 +229,17 @@ def build_BiGRU_CNN(incoming1, incoming2, num_units, mask=None, grad_clipping=0,
 
 
 def build_BiLSTM_CNN_CRF(incoming1, incoming2, num_units, num_labels, mask=None, grad_clipping=0, precompute_input=True,
-                         peepholes=False, num_filters=20, dropout=True, in_to_out=False):
+                         peepholes=False, num_filters=20, dropout=True, in_to_out=False, gradient_steps=-1):
     bi_lstm_cnn = build_BiLSTM_CNN(incoming1, incoming2, num_units, mask=mask, grad_clipping=grad_clipping,
                                    precompute_input=precompute_input, peepholes=peepholes,
-                                   num_filters=num_filters, dropout=dropout, in_to_out=in_to_out)
+                                   num_filters=num_filters, dropout=dropout, in_to_out=in_to_out,
+                                   gradient_steps=gradient_steps)
 
     return CRFLayer(bi_lstm_cnn, num_labels, mask_input=mask)
 
 
 def build_BiLSTM_HighCNN(incoming1, incoming2, num_units, mask=None, grad_clipping=0, precompute_input=True,
-                         peepholes=False, num_filters=20, dropout=True, in_to_out=False):
+                         peepholes=False, num_filters=20, dropout=True, in_to_out=False, gradient_steps=-1):
     # first get some necessary dimensions or parameters
     conv_window = 3
     _, sent_length, _ = incoming2.output_shape
@@ -269,13 +272,15 @@ def build_BiLSTM_HighCNN(incoming1, incoming2, num_units, mask=None, grad_clippi
     incoming = lasagne.layers.concat([output_highway_layer, incoming2], axis=2)
 
     return build_BiLSTM(incoming, num_units, mask=mask, grad_clipping=grad_clipping, peepholes=peepholes,
-                        precompute_input=precompute_input, dropout=dropout, in_to_out=in_to_out)
+                        precompute_input=precompute_input, dropout=dropout, in_to_out=in_to_out,
+                        gradient_steps=gradient_steps)
 
 
-def build_BiLSTM_HighCNN_CRF(incoming1, incoming2, num_units, num_labels, mask=None, grad_clipping=0,
+def build_BiLSTM_HighCNN_CRF(incoming1, incoming2, num_units, num_labels, mask=None, grad_clipping=0, gradient_steps=-1,
                              precompute_input=True, peepholes=False, num_filters=20, dropout=True, in_to_out=False):
     bi_lstm_cnn = build_BiLSTM_HighCNN(incoming1, incoming2, num_units, mask=mask, grad_clipping=grad_clipping,
                                        precompute_input=precompute_input, peepholes=peepholes,
-                                       num_filters=num_filters, dropout=dropout, in_to_out=in_to_out)
+                                       num_filters=num_filters, dropout=dropout, in_to_out=in_to_out,
+                                       gradient_steps=gradient_steps)
 
     return CRFLayer(bi_lstm_cnn, num_labels, mask_input=mask)
