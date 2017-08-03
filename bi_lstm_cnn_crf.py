@@ -39,6 +39,8 @@ def main():
     parser.add_argument('--gradient_steps', type=int,
                         help='Number of steps to propagate the gradient during optimization')
     parser.add_argument('--epochs', type=int, help='Number of epochs to train the classifier')
+    parser.add_argument('--output_directory', type=str, default='tmp_bi_lstm_cnn_crf',
+                        help='Directory to store the predictions')
     parser.add_argument('--train')  # "data/POS-penn/wsj/split1/wsj1.train.original"
     parser.add_argument('--dev')  # "data/POS-penn/wsj/split1/wsj1.dev.original"
     parser.add_argument('--test')  # "data/POS-penn/wsj/split1/wsj1.test.original"
@@ -86,7 +88,7 @@ def main():
     dropout = args.dropout
 
     if output_predict != 'none':
-        utils.safe_mkdir('tmp')
+        utils.safe_mkdir(args.output_directory)
 
     X_train, Y_train, mask_train, X_dev, Y_dev, mask_dev, X_test, Y_test, mask_test, \
     embedd_table, label_alphabet, \
@@ -233,8 +235,9 @@ def main():
             dev_total += num
             dev_inst += inputs.shape[0]
             if output_predict == 'all':
-                utils.output_predictions(predictions, targets, masks, 'tmp/dev%d' % epoch, label_alphabet,
-                                         is_flattened=False)
+                utils.output_predictions(
+                    predictions, targets, masks, '%s/dev%d' % (args.output_directory, epoch),
+                    label_alphabet, is_flattened=False)
 
         print 'dev loss: %.4f, corr: %d, total: %d, acc: %.2f%%' % (
             dev_err / dev_inst, dev_corr, dev_total, dev_corr * 100 / dev_total)
@@ -268,8 +271,9 @@ def main():
                 test_total += num
                 test_inst += inputs.shape[0]
                 if output_predict == 'all':
-                    utils.output_predictions(predictions, targets, masks, 'tmp/test%d' % epoch, label_alphabet,
-                                             is_flattened=False)
+                    utils.output_predictions(
+                        predictions, targets, masks, '%s/test%d' % (args.output_directory, epoch),
+                        label_alphabet, is_flattened=False)
 
             print 'test loss: %.4f, corr: %d, total: %d, acc: %.2f%%' % (
                 test_err / test_inst, test_corr, test_total, test_corr * 100 / test_total)
@@ -304,8 +308,9 @@ def main():
             batch_size=batch_size):
                 inputs, targets, masks, char_inputs = batch
                 predictions = predict_fn(inputs, targets, masks, char_inputs)
-            utils.output_predictions(predictions, targets, mask,
-                                     'tmp/final_test', label_alphabet)
+            utils.output_predictions(
+                predictions, targets, mask,
+                '{}/final_test'.format(args.output_directory), label_alphabet)
 
     # print best performance on test data.
     logger.info("final best loss test performance (at epoch %d)" % best_epoch_loss)
