@@ -128,7 +128,7 @@ def main():
 
     bi_lstm_cnn_crf = build_BiLSTM_CNN_CRF(layer_incoming1, layer_incoming2, num_units, num_labels, mask=layer_mask,
                                            grad_clipping=grad_clipping, peepholes=peepholes, num_filters=num_filters,
-                                           dropout=dropout, gradient_steps=gradient_steps)
+                                           dropout=dropout)# , gradient_steps=gradient_steps)
 
     logger.info("Network structure: hidden=%d, filter=%d" % (num_units, num_filters))
 
@@ -301,16 +301,16 @@ def main():
         # Log last predictions
         # Compile a third function evaluating the final predictions only
         predict_fn = theano.function(
-            [input_var, target_var, mask_var, char_input_var],
-            [final_prediction], allow_input_downcast=True)
+            [input_var, mask_var, char_input_var],
+            [prediction_eval], allow_input_downcast=True)
         for batch in utils.iterate_minibatches(
-            X_test, Y_test, masks=mask_test, char_inputs=C_test,
-            batch_size=batch_size):
-                inputs, targets, masks, char_inputs = batch
-                predictions = predict_fn(inputs, targets, masks, char_inputs)
+                X_test, Y_test, masks=mask_test, char_inputs=C_test,
+                batch_size=batch_size):
+            inputs, targets, masks, char_inputs = batch
+            predictions = predict_fn(inputs, masks, char_inputs)[0]
             utils.output_predictions(
-                predictions, targets, mask,
-                '{}/final_test'.format(args.output_directory), label_alphabet)
+                predictions, targets, masks,
+                '{}/final_test'.format(args.output_directory), label_alphabet, is_flattened=False)
 
     # print best performance on test data.
     logger.info("final best loss test performance (at epoch %d)" % best_epoch_loss)
