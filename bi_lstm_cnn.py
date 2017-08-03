@@ -300,14 +300,14 @@ def main():
         # Log last predictions
         # Compile a third function evaluating the final predictions only
         predict_fn = theano.function(
-            [input_var, target_var, mask_var, char_input_var],
+            [input_var, mask_var, char_input_var],
             [final_prediction], allow_input_downcast=True)
         for batch in utils.iterate_minibatches(
-            X_test, Y_test, masks=mask_test, char_inputs=C_test,
-            batch_size=batch_size):
-                inputs, targets, masks, char_inputs = batch
-                predictions = predict_fn(inputs, targets, masks, char_inputs)
-            utils.output_predictions(predictions, targets, mask,
+                X_test, Y_test, masks=mask_test, char_inputs=C_test,
+                batch_size=batch_size):
+            inputs, targets, masks, char_inputs = batch
+            predictions = predict_fn(inputs, masks, char_inputs)[0]
+            utils.output_predictions(predictions, targets, masks,
                                      'tmp/final_test', label_alphabet)
 
     # print best performance on test data.
